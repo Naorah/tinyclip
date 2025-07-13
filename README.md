@@ -1,38 +1,73 @@
-# sv
+# TinyClip 🎬
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+**TinyClip** is a minimalist web-based tool to compress your videos quickly and efficiently — perfect for sharing on platforms like Discord without Nitro (<10MB).  
+No logs, no file storage, pure client-to-server streaming with optional speed-up and precise size targeting.
 
-## Creating a project
+---
 
-If you're seeing this, you've probably already done this step. Congrats!
+## 🚀 Features
+
+- 🎯 Target final file size (in MB)
+- ⚡ Speed up the video (optional)
+- 🧠 Automatic 2-pass encoding via `ffmpeg`
+- 🕵️ No file logging or storage (privacy-first)
+- 🖥️ Built on Python + Flask (lightweight backend)
+
+---
+
+## 📦 How It Works
+
+1. Upload your video file via the interface.
+2. Select your target size (e.g. 8 MB) and optional playback speed (e.g. 1.25x).
+3. Wait for compression to finish.
+4. Download your optimized video.
+
+---
+
+## 🧪 Technologies Used
+
+- Python 3.11+
+- Flask (Backend API)
+- ffmpeg (CLI compression)
+- HTML/JS Frontend (one-page UI)
+- No database, no persistent storage
+
+---
+
+## ⚙️ Running Locally
 
 ```bash
-# create a new project in the current directory
-npx sv create
+git clone https://github.com/yourname/tinyclip.git
+cd tinyclip
 
-# create a new project in my-app
-npx sv create my-app
+# Set up virtual environment
+python3 -m venv env
+source env/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the app
+python app.py
 ```
 
-## Developing
+Make sure `ffmpeg` is installed and available in your PATH.
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+---
 
-```bash
-npm run dev
+## 🛡️ Disclaimer
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
+TinyClip is designed with privacy in mind — it does not log or retain any files. However, always use trusted servers for sensitive media.
 
-## Building
+---
 
-To create a production version of your app:
+## 📫 Contact
 
-```bash
-npm run build
-```
+Made with ❤️ by Naorah  
+Project #9 – From script to web 🧩
 
-You can preview the production build with `npm run preview`.
+---
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+## 📃 License
+
+MIT License
