@@ -6,13 +6,14 @@ import { PRIVATE_BACKEND_URL } from '$env/static/private';
  * @returns The compressed video file
  */
 export async function POST({ request }: { request: Request }) {
-  const formData = await request.formData();
-
   try {
     const backendResponse = await fetch(`${PRIVATE_BACKEND_URL}/compress/stream`, {
       method: 'POST',
-      body: formData,
+      headers: request.headers,
+      body: request.body,
+      duplex: 'half'
     });
+
     return new Response(backendResponse.body, {
       headers: {
         'Content-Type': 'text/event-stream',
@@ -24,7 +25,6 @@ export async function POST({ request }: { request: Request }) {
     console.error('Error:', error);
     return new Response('Internal Server Error', { status: 500 });
   }
-
 }
 
 /**
