@@ -13,6 +13,8 @@ export async function POST({ request }: { request: Request }) {
     filteredHeaders.delete('connection');
     filteredHeaders.delete('content-length');
     filteredHeaders.delete('host');
+
+    console.log(filteredHeaders);
     
     const backendResponse = await fetch(`${PRIVATE_BACKEND_URL}/compress/stream`, {
       method: 'POST',
