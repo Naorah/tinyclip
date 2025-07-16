@@ -1,33 +1,14 @@
-from flask import Flask, request, send_file, Response
-from compress import compress_video, compress_video_with_progress
+from flask import Flask, request, send_file, Response, after_this_request
+from compress import compress_video_with_progress
 import tempfile
 import os
 import subprocess
+import uuid
+from io import BytesIO
 
 app = Flask(__name__)
 
-@app.route('/compress', methods=['POST'])
-def compress():
-    file = request.files.get('file')
-    target_size = float(request.form.get('size'))
-    speed = float(request.form.get('speed', 1.0))
-
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as tmp_in:
-        file.save(tmp_in.name)
-        output_path = compress_video(tmp_in.name, target_size, speed)
-
-    # Retourner le fichier compressé en téléchargement
-    response = send_file(output_path, as_attachment=True, download_name="compressed.mp4")
-
-    # Nettoyage des fichiers temporaires après envoi
-    try:
-        os.remove(tmp_in.name)
-        os.remove(output_path)
-        # Supprimer aussi les logs de ffmpeg (.log, .log.mbtree, etc.) si nécessaire
-    except Exception:
-        pass
-
-    return response
+download_map = {}
 
 @app.route('/compress/stream', methods=['POST'])
 def compress_stream():
@@ -39,65 +20,65 @@ def compress_stream():
     file.save(tmp_in.name)
 
     def generate():
-        yield from compress_video_with_progress(tmp_in.name, target_size, speed)
+        token = str(uuid.uuid4())
+        compressed_path = tmp_in.name.replace(".mp4", "_compressed.mp4")
 
-        # Nettoyage (output path est renvoyé dans le dernier message "done")
+        # Générer la compression avec progressions
+        yield from compress_video_with_progress(tmp_in.name, target_size, speed, token)
+
+        # Stocker le token et chemin compressé pour téléchargement
+        download_map[token] = {
+            'compressed': compressed_path,
+            'original': tmp_in.name
+        }
+
+        # Supprimer le fichier d'entrée (inutile après compression)
         try:
             os.remove(tmp_in.name)
-            os.remove(tmp_in.name.replace(".mp4", "_compressed.mp4"))
         except:
             pass
 
     return Response(generate(), mimetype='text/event-stream')
 
+
 @app.route('/download', methods=['GET'])
 def download():
-    path = request.args.get('path')
-    if not path or not os.path.exists(path):
+    token = request.args.get('token')
+    if not token or token not in download_map:
+        return "Token invalide ou expiré", 404
+
+    entry = download_map.pop(token, None)
+
+    if not entry:
+        return "Token invalide ou expiré", 404
+    
+    print(entry)
+
+    compressed_path = entry['compressed']
+    original_path = entry['original']
+
+    if not os.path.exists(compressed_path):
         return "Fichier introuvable", 404
-    return send_file(path, as_attachment=True, download_name="compressed.mp4")
 
+    # Lire le fichier en mémoire
+    with open(compressed_path, 'rb') as f:
+        file_data = BytesIO(f.read())
 
-@app.route('/compress_live', methods=['POST'])
-def compress_live():
-    input_video = request.files['video']
+    # Supprimer immédiatement le fichier du disque
+    for file_path in [compressed_path, original_path]:
+        try:
+            os.remove(file_path)
+        except:
+            pass
 
-    # ffmpeg: lire depuis stdin, écrire vers stdout
-    command = [
-        'ffmpeg',
-        '-i', 'pipe:0',                 # stdin
-        '-vcodec', 'libx264',
-        '-crf', '28',
-        '-preset', 'veryfast',
-        '-f', 'mp4',
-        'pipe:1'                        # stdout
-    ]
-
-    process = subprocess.Popen(
-        command,
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.DEVNULL  # ou tu peux capturer stderr pour les logs
-    )
-
-    # Écrit la vidéo d'entrée dans stdin et récupère stdout en réponse
-    def generate():
-        # Envoie le contenu au processus
-        process.stdin.write(input_video.read())
-        process.stdin.close()
-
-        # Lit la sortie compressée
-        while True:
-            chunk = process.stdout.read(4096)
-            if not chunk:
-                break
-            yield chunk
-
-    return Response(
-        generate(),
+    # Envoyer le contenu depuis la mémoire
+    return send_file(
+        file_data,
         mimetype='video/mp4',
-        headers={"Content-Disposition": "attachment; filename=compressed.mp4"}
+        as_attachment=True,
+        download_name="compressed.mp4"
     )
+
 
 if __name__ == '__main__':
     app.run(debug=True)

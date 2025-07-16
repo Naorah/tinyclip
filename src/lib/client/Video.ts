@@ -1,5 +1,48 @@
 import { error } from "@sveltejs/kit";
 
+
+// ##### ALLOWED TYPES #####
+const allowed_types = [
+  'video/webm', 
+  'video/mkv', 
+  'video/flv', 
+  'video/vob', 
+  'video/ogv', 
+  'video/ogg', 
+  'video/rrc', 
+  'video/gifv', 
+  'video/mng', 
+  'video/mov', 
+  'video/avi', 
+  'video/qt', 
+  'video/wmv', 
+  'video/yuv', 
+  'video/rm', 
+  'video/asf', 
+  'video/amv', 
+  'video/mp4', 
+  'video/m4p', 
+  'video/m4v', 
+  'video/mpg', 
+  'video/mp2', 
+  'video/mpeg', 
+  'video/mpe', 
+  'video/mpv', 
+  'video/m4v', 
+  'video/svi', 
+  'video/3gp', 
+  'video/3g2', 
+  'video/mxf', 
+  'video/roq', 
+  'video/nsv', 
+  'video/flv', 
+  'video/f4v', 
+  'video/f4p', 
+  'video/f4a', 
+  'video/f4b', 
+  'video/mod'
+];
+
 /**
  * Validate the video data
  * @param file - The video file to validate
@@ -11,17 +54,20 @@ async function validateVideoData(file: File, size: number, speed: number) {
     error(400, 'File is required');
   }
 
-  if (file.type !== 'video/mp4') {
-    error(400, 'File must be an MP4 video');
+  if (!allowed_types.includes(file.type)) {
+    error(400, 'File must be an MP4, MKV, WEBM, FLV, VOB, OGV, OGG, RRC, GIFV, MNG, MOV, AVI, QT, WMV, YUV, RM, ASF, AMV, MP4, M4P, M4V, MPG, MP2, MPEG, MPE, MPV, M4V, SVI, 3GP, 3G2, MXF, ROQ, NSV, FLV, F4V, F4P, F4A, F4B, MOD');
   }
   
-  const oneGB = 1024 * 1024 * 1024; // 1GB
+  const input_max_size_allowed = (1024 * 1024 * 1024) * 5; // 5GB
+
+  const output_max_size_allowed = 1024 // 1GB
+  const output_min_size_allowed = 5; // 5MB
   
-  if (file.size > oneGB) {
-    error(400, 'File must be less than 1GB');
+  if (file.size > input_max_size_allowed) {
+    error(400, 'File must be less than 5GB');
   }
   
-  if (size <= 0 || size > oneGB) {
+  if (size <= output_min_size_allowed || size > output_max_size_allowed) {
     error(400, 'Size must be between 0 and 1GB');
   }
   
@@ -78,13 +124,13 @@ export async function compressVideoStream(file: File, size: number, speed: numbe
   });
 
   if (!response.ok) {
-    error(500, 'Failed to compress video');
+    return new Response('Failed to compress video', { status: 500 });
   }
 
   return response.body;
 };
 
-export async function downloadVideo(path: string) {
-  const response = await fetch(`/api/video/stream?path=${path}`);
+export async function downloadVideo(token: string) {
+  const response = await fetch(`/api/video/stream?token=${token}`);
   return response.blob();
 };
