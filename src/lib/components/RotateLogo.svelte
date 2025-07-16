@@ -52,10 +52,10 @@
   onMount(() => {
     const saved = localStorage.getItem('theme');
     console.log(saved);
-    if (saved === 'dark') {
-      back_color = "#111827";
-    } else {
+    if (saved === 'light') {
       back_color = "#F8FAFC";
+    } else {
+      back_color = "#111827";
     }
     // Base
     scene = new THREE.Scene();
