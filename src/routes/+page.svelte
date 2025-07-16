@@ -28,6 +28,7 @@
 
     if (!file) {
       responseMessage = "Veuillez choisir une vidéo.";
+      resetState();
       return;
     }
 
@@ -37,17 +38,16 @@
     try {
       reader = stream_response?.getReader();
     } catch (error) {
-      responseMessage = "Le serveur de compression est en cours de maintenance.";
-      isCompressing = false;
-      isDownloadable = false;
-      progress = 0;
-      eta = '';
+      resetState();
       return;
     }
 
     const decoder = new TextDecoder('utf-8');
 
-    if (!reader) return;
+    if (!reader) {
+      resetState();
+      return
+    };
 
     let buffer = '';
     while (true) {
@@ -70,8 +70,6 @@
         const type = typeLine.slice(7).trim();
         const data = dataLine.slice(6).trim();
 
-        console.log(type, data);
-
         if (type === 'progress') {
           try {
             const { percent, eta: etaVal } = JSON.parse(data);
@@ -82,14 +80,11 @@
           }
         } else if (type === 'done') {
           // Le backend renvoie le nom du fichier ou autre info
-          isCompressing = false;
-          progress = 100;
-          eta = 'Terminé !';
-          isDownloadable = true;
-          downloadToken = data;
+          resetState();
         } else if (type === 'error') {
           isCompressing = false;
           eta = 'Erreur : ' + data;
+          resetState();
         }
       }
     }
@@ -107,7 +102,10 @@
     a.href = url;
     a.download = 'compressed.mp4';
     a.click();
+    resetState();
+  }
 
+  async function resetState() {
     // reset state
     isDownloadable = false;
     isCompressing = false;
@@ -184,16 +182,20 @@
                   <input type="number" step="0.1" bind:value={speed} min="0.1" class="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 focus:border-[#2563EB] dark:focus:border-[#3B82F6] focus:ring-1 focus:ring-[#2563EB] dark:focus:ring-[#3B82F6] bg-white dark:bg-gray-800 text-[#111827] dark:text-[#F1F5F9]" />
                 </label>
               </div>
-
-              <button 
-                onclick={handleSubmitStream} 
-                class="w-full px-6 py-3 bg-[#2563EB] dark:bg-[#3B82F6] text-white rounded-xl hover:bg-[#2563EB]/80 dark:hover:bg-[#3B82F6]/80 transition cursor-pointer" 
-                aria-label="Compresser la vidéo" 
-                transition:fade
-              >
-                Compresser la vidéo
-              </button>
-
+              
+                <button 
+                  onclick={handleSubmitStream} 
+                  class="w-full px-6 py-3 bg-[#2563EB] dark:bg-[#3B82F6] text-white rounded-xl hover:bg-[#2563EB]/80 dark:hover:bg-[#3B82F6]/80 transition cursor-pointer" 
+                  aria-label="Compresser la vidéo" 
+                  transition:fade
+                  disabled={isCompressing}
+                >
+                  {#if isCompressing}
+                    Compression en cours...
+                  {:else}
+                    Compresser la vidéo
+                  {/if}
+                </button>
             {#if isCompressing || isDownloadable}
 
               <div class="flex gap-4 mt-8">

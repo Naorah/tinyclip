@@ -5,7 +5,6 @@
 
   onMount(() => {
     const saved = localStorage.getItem('theme');
-    console.log(saved);
     if (saved === 'dark') {
       themeMode.isDark = true;
     } else if (saved === 'light') {

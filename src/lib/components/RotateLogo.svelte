@@ -51,7 +51,6 @@
 
   onMount(() => {
     const saved = localStorage.getItem('theme');
-    console.log(saved);
     if (saved === 'light') {
       back_color = "#F8FAFC";
     } else {

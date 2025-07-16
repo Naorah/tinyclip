@@ -1,6 +1,3 @@
-import { error } from "@sveltejs/kit";
-
-
 // ##### ALLOWED TYPES #####
 const allowed_types = [
   'video/webm', 
