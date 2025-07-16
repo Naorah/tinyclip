@@ -7,12 +7,19 @@ import { PRIVATE_BACKEND_URL } from '$env/static/private';
  */
 export async function POST({ request }: { request: Request }) {
   try {
+
+    // cleanup the headers
+    const filteredHeaders = new Headers(request.headers);
+    filteredHeaders.delete('connection');
+    filteredHeaders.delete('content-length');
+    filteredHeaders.delete('host');
+    
     const backendResponse = await fetch(`${PRIVATE_BACKEND_URL}/compress/stream`, {
       method: 'POST',
-      headers: request.headers,
+      headers: filteredHeaders,
       body: request.body,
       duplex: 'half'
-    });
+    } as any );
 
     return new Response(backendResponse.body, {
       headers: {
