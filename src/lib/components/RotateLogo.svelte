@@ -17,7 +17,7 @@
   const bounceSpeed = 0.005;
   const bounceAmplitude = 5;
   const front_color = "#AF3300";
-  let back_color = $state();
+  let back_color = $state("#F8FAFC");
 
   $effect(() => {
     if (themeMode.isDark) {
@@ -58,7 +58,7 @@
     }
     // Base
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(back_color);
+    scene.background = new THREE.Color(back_color as string);
     camera = new THREE.PerspectiveCamera(70, container.clientWidth / container.clientHeight, 0.1, 1000);
     camera.position.z = 300;
 
