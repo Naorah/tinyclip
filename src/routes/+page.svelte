@@ -70,6 +70,8 @@
         const type = typeLine.slice(7).trim();
         const data = dataLine.slice(6).trim();
 
+        console.log(type, data);
+
         if (type === 'progress') {
           try {
             const { percent, eta: etaVal } = JSON.parse(data);
