@@ -56,3 +56,35 @@ export async function compressVideo(file: File, size: number, speed: number) {
 
   return response.blob();
 };
+
+/**
+ * Compress a video file
+ * @param file - The video file to compress
+ * @param size - The target size of the compressed video in bytes
+ * @param speed - The speed factor for the compression
+ * @returns The compressed video file
+ */
+export async function compressVideoStream(file: File, size: number, speed: number) {
+  validateVideoData(file, size, speed);
+
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('size', size.toString());
+  formData.append('speed', speed.toString());
+
+  const response = await fetch('/api/video/stream', {
+    method: 'POST',
+    body: formData,
+  });
+
+  if (!response.ok) {
+    error(500, 'Failed to compress video');
+  }
+
+  return response.body;
+};
+
+export async function downloadVideo(path: string) {
+  const response = await fetch(`/api/video/stream?path=${path}`);
+  return response.blob();
+};
