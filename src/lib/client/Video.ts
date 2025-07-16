@@ -116,7 +116,10 @@ export async function compressVideo(file: File, size: number, speed: number) {
  * @returns The compressed video file
  */
 export async function compressVideoStream(file: File, size: number, speed: number) {
-  validateVideoData(file, size, speed);
+  const validation_response = await validateVideoData(file, size, speed);
+  if (validation_response.code !== 200) {
+    return{code: validation_response.code, message: validation_response.message};
+  }
 
   const formData = new FormData();
   formData.append('file', file);
@@ -137,5 +140,9 @@ export async function compressVideoStream(file: File, size: number, speed: numbe
 
 export async function downloadVideo(token: string) {
   const response = await fetch(`/api/video/stream?token=${token}`);
+  if (!response.ok) {
+    return{code: 500, message: 'Failed to download video'};
+  }
+
   return response.blob();
 };
