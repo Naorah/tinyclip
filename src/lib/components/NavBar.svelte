@@ -1,25 +1,25 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import Icon from '@iconify/svelte';
-
-  let isDark = $state(false);
+  import themeMode from "$lib/rune/ThemeMode.svelte";
 
   onMount(() => {
     const saved = localStorage.getItem('theme');
+    console.log(saved);
     if (saved === 'dark') {
-      isDark = true;
+      themeMode.isDark = true;
     } else if (saved === 'light') {
-      isDark = false;
+      themeMode.isDark = false;
     } else {
-      isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      themeMode.isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     }
-    document.documentElement.classList.toggle('dark', isDark);
+    document.documentElement.classList.toggle('dark', themeMode.isDark);
   });
-
+  
   function toggleTheme() {
-    isDark = !isDark;
-    document.documentElement.classList.toggle('dark', isDark);
-    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    themeMode.isDark = !themeMode.isDark;
+    document.documentElement.classList.toggle('dark', themeMode.isDark);
+    localStorage.setItem('theme', themeMode.isDark === true ? 'dark' : 'light');
   }
 </script>
 
@@ -29,14 +29,14 @@
       <img src="/favicon.svg" alt="TinyClip" class="w-8 h-8" />
       <span class="font-semibold text-gray-800 dark:text-white">TinyClip</span>
     </div>
-    
+
     <button 
       class="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
       onclick={toggleTheme}
       aria-label="Toggle theme"
     >
       <Icon 
-        icon={isDark ? "lucide:sun" : "lucide:moon"} 
+        icon={themeMode.isDark ? "lucide:sun" : "lucide:moon"} 
         class="text-xl text-gray-600 dark:text-gray-300" 
       />
     </button>

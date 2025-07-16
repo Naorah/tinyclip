@@ -2,8 +2,9 @@
   import { onMount, onDestroy } from 'svelte';
   import * as THREE from 'three';
   import { SVGLoader } from 'three/examples/jsm/loaders/SVGLoader.js';
+  import themeMode from "$lib/rune/ThemeMode.svelte";
 
-  let { src, back_color, front_color } = $props();
+  let { src } = $props();
 
   let container: HTMLDivElement;
   let renderer: THREE.WebGLRenderer;
@@ -15,6 +16,26 @@
   let bounceOffset = 0;
   const bounceSpeed = 0.005;
   const bounceAmplitude = 5;
+  const front_color = "#AF3300";
+  let back_color = $state();
+
+  $effect(() => {
+    if (themeMode.isDark) {
+      updateBackground("#111827");
+    }
+  });
+  
+  $effect(() => {
+    if (!themeMode.isDark) {
+      updateBackground("#F8FAFC");
+    }
+  });
+  
+  function updateBackground(color:string) {
+    if (scene) {
+      scene.background = new THREE.Color(color);
+    }
+  }
 
   // Gestion du redimensionnement
   function handleResize() {
@@ -29,6 +50,13 @@
   }
 
   onMount(() => {
+    const saved = localStorage.getItem('theme');
+    console.log(saved);
+    if (saved === 'dark') {
+      back_color = "#111827";
+    } else {
+      back_color = "#F8FAFC";
+    }
     // Base
     scene = new THREE.Scene();
     scene.background = new THREE.Color(back_color);
@@ -54,13 +82,10 @@
     // Point pivot pour la rotation
     pivot = new THREE.Group();
     scene.add(pivot);
-    pivot.add(svgGroup);
-    // Déplace le pivot vers le haut
-    pivot.position.y = 38;
-
+    pivot.position.y = 38.5;
     // Charger SVG
     const loader = new SVGLoader();
-    loader.load(src, (data) => {
+    loader.load(src, (data: any) => {
       const material = new THREE.MeshPhongMaterial({ 
         color: front_color,
         side: THREE.DoubleSide,
@@ -68,9 +93,9 @@
         emissiveIntensity: 0.2
       });
 
-      data.paths.forEach(path => {
+      data.paths.forEach((path: any) => {
         const shapes = SVGLoader.createShapes(path);
-        shapes.forEach(shape => {
+        shapes.forEach((shape: any) => {
           const geometry = new THREE.ExtrudeGeometry(shape, {
             depth: 10,
             bevelEnabled: true,
@@ -86,13 +111,18 @@
       // Centre le groupe entier
       const box = new THREE.Box3().setFromObject(svgGroup);
       const center = box.getCenter(new THREE.Vector3());
+      
+      // Déplace le groupe pour que son centre soit à l'origine
       svgGroup.position.sub(center);
-
+      
       // Ajuste l'échelle
       const size = box.getSize(new THREE.Vector3());
       const maxDim = Math.max(size.x, size.y);
       const scale = 100 / maxDim;
       svgGroup.scale.multiplyScalar(scale);
+
+      // Ajoute le groupe au pivot après l'avoir centré
+      pivot.add(svgGroup);
 
       // Ajustement initial de la taille
       handleResize();

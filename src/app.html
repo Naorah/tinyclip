@@ -82,6 +82,12 @@
 
 		<meta charset="utf-8" />
 		<link rel="icon" href="%sveltekit.assets%/favicon.svg" />
+
+		<script>
+			const theme = localStorage.getItem('theme') || 'light';
+			document.documentElement.classList.toggle('dark', theme === 'dark');
+		</script>
+
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		%sveltekit.head%
 	</head>

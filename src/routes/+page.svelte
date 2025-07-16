@@ -111,6 +111,7 @@
     // reset state
     isDownloadable = false;
     isCompressing = false;
+    file = null;
     progress = 0;
     eta = '';
     downloadToken = '';
