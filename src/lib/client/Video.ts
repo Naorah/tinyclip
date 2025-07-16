@@ -84,37 +84,6 @@ async function validateVideoData(file: File, size: number, speed: number) {
  * @param speed - The speed factor for the compression
  * @returns The compressed video file
  */
-export async function compressVideo(file: File, size: number, speed: number) {
-  const validation_response = await validateVideoData(file, size, speed);
-
-  if (validation_response.code !== 200) {
-    return{code: validation_response.code, message: validation_response.message};
-  }
-
-  const formData = new FormData();
-  formData.append('file', file);
-  formData.append('size', size.toString());
-  formData.append('speed', speed.toString());
-
-  const response = await fetch('/api/video', {
-    method: 'POST',
-    body: formData,
-  });
-
-  if (!response.ok) {
-    error(500, 'Failed to compress video');
-  }
-
-  return response.blob();
-};
-
-/**
- * Compress a video file
- * @param file - The video file to compress
- * @param size - The target size of the compressed video in bytes
- * @param speed - The speed factor for the compression
- * @returns The compressed video file
- */
 export async function compressVideoStream(file: File, size: number, speed: number) {
   const validation_response = await validateVideoData(file, size, speed);
   if (validation_response.code !== 200) {

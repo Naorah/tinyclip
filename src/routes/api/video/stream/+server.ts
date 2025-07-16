@@ -1,3 +1,5 @@
+import { PRIVATE_BACKEND_URL } from '$env/static/private';
+
 /**
  * Compress a video file and stream the result
  * @param request - The request body { file: File, size: number, speed: number }
@@ -7,7 +9,7 @@ export async function POST({ request }: { request: Request }) {
   const formData = await request.formData();
 
   try {
-    const backendResponse = await fetch('http://127.0.0.1:5000/compress/stream', {
+    const backendResponse = await fetch(`${PRIVATE_BACKEND_URL}/compress/stream`, {
       method: 'POST',
       body: formData,
     });
@@ -36,6 +38,6 @@ export async function GET({ request }: { request: Request }) {
   if (!token) {
     return new Response('Token is required', { status: 400 });
   }
-  const response = await fetch(`http://127.0.0.1:5000/download?token=${token}`);
+  const response = await fetch(`${PRIVATE_BACKEND_URL}/download?token=${token}`);
   return response;
 }
